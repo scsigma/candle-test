@@ -94,9 +94,9 @@ const getData = (config, sigmaData) => {
   console.log('series', series);
   // Create the output object for the candlestick chart
   return {
-    rangeSelector: {
-      selected: 1
-    },
+    // rangeSelector: {
+    //   selected: 1
+    // },
     chart: {
       animation: true,
       type: 'candlestick'
@@ -129,7 +129,7 @@ const getData = (config, sigmaData) => {
     // },
     series: [{
       step: 'center',
-      name: 'test',
+      name: sigmaData[config['symbol']][0],
       data: series,
       type: "candlestick"
     }] 
