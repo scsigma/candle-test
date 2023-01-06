@@ -94,9 +94,37 @@ const getData = (config, sigmaData) => {
   console.log('series', series);
   // Create the output object for the candlestick chart
   return {
-    // rangeSelector: {
-    //   selected: 1
-    // },
+    rangeSelector: {
+      buttons: [{
+          type: 'month',
+          count: 1,
+          text: '1m',
+          events: {
+              click: function () {
+                  console.log(this);
+              }
+          }
+      }, {
+          type: 'month',
+          count: 3,
+          text: '3m'
+      }, {
+          type: 'month',
+          count: 6,
+          text: '6m'
+      }, {
+          type: 'ytd',
+          text: 'YTD'
+      }, {
+          type: 'year',
+          count: 1,
+          text: '1y'
+      }, {
+          type: 'all',
+          text: 'All'
+      }],
+      // selected: 1
+    },
     chart: {
       animation: true,
       type: 'candlestick'
@@ -107,26 +135,6 @@ const getData = (config, sigmaData) => {
     scrollbar: {
       enabled: true,
     },
-    // xAxis: {
-    //   scrollablePlotArea: {
-    //     maxWidth: 1,
-    //   },
-    //   zoomEnabled: true,
-    //   width: "100%",
-    //   range: 10000,
-    //   units: [["hour", [1]]],
-    // },
-    // yAxis: {
-    //   title: {
-    //     text: "PRICE",
-    //     margin: -20,
-    //     style: {
-    //       color: "white",
-    //       fontWeight: 800,
-    //       opacity: 0.7,
-    //     },
-    //   },
-    // },
     series: [{
       step: 'center',
       name: sigmaData[config['symbol']][0],
@@ -165,7 +173,11 @@ const useMain = () => {
     
     // Call conditional function to make sure all data is in (async operation)
     if (allData(config, sigmaData)) {
-      setRes(getData(config, sigmaData));
+      // This conditional prevents a lot of the re-rendering
+      // if (!res) {
+        setRes(getData(config, sigmaData));
+      // }
+      
     }
 
   }, [config, sigmaData])
