@@ -1,6 +1,7 @@
 import React, {
   useState,
-  useEffect
+  useEffect,
+  useMemo
 } from 'react';
 
 // Sigma Packages
@@ -76,7 +77,9 @@ const arraySorter = (config, sigmaData) => {
 
 // Data Processing
 const getData = (config, sigmaData) => {
+  console.log('inside getData')
 
+  if (allData(config, sigmaData)) {
   // Sort the data by date
   sigmaData = arraySorter(config, sigmaData);
 
@@ -91,57 +94,59 @@ const getData = (config, sigmaData) => {
     ]
   })
 
-  console.log('series', series);
+  // console.log('series', series);
   // Create the output object for the candlestick chart
-  return {
-    rangeSelector: {
-      buttons: [{
-          type: 'month',
-          count: 1,
-          text: '1m',
-          events: {
-              click: function () {
-                  console.log(this);
-              }
-          }
-      }, {
-          type: 'month',
-          count: 3,
-          text: '3m'
-      }, {
-          type: 'month',
-          count: 6,
-          text: '6m'
-      }, {
-          type: 'ytd',
-          text: 'YTD'
-      }, {
-          type: 'year',
-          count: 1,
-          text: '1y'
-      }, {
-          type: 'all',
-          text: 'All'
-      }],
-      // selected: 1
-    },
-    chart: {
-      animation: true,
-      type: 'candlestick'
-    },
-    navigator: {
-      enabled: true
-    },
-    scrollbar: {
-      enabled: true,
-    },
-    series: [{
-      step: 'center',
-      name: sigmaData[config['symbol']][0],
-      data: series,
-      type: "candlestick"
-    }] 
-  }
+    return {
+      rangeSelector: {
+        animation: false,
+        buttons: [{
+            type: 'month',
+            count: 1,
+            text: '1m',
+            events: {
+                click: function () {
+                    console.log(this);
+                    // setExtremes(undefined, undefined, false)
+                }
+            }
+        }, {
+            type: 'month',
+            count: 3,
+            text: '3m'
+        }, {
+            type: 'month',
+            count: 6,
+            text: '6m'
+        }, {
+            type: 'ytd',
+            text: 'YTD'
+        }, {
+            type: 'year',
+            count: 1,
+            text: '1y'
+        }, {
+            type: 'all',
+            text: 'All'
+        }],
+      },
+      chart: {
+        animation: false,
+        type: 'candlestick'
+      },
+      navigator: {
+        enabled: true
+      },
+      scrollbar: {
+        enabled: true,
+      },
+      series: [{
+        step: 'center',
+        name: sigmaData[config['symbol']][0],
+        data: series,
+        type: "candlestick"
+      }] 
+    }
+  } 
 }
 
 // All Data Conditional
@@ -153,34 +158,38 @@ const allData = (config, sigmaData) => {
   && !sigmaData[config['date']] 
   && !sigmaData[config['volume']] 
   && !sigmaData[config['symbol']]) {
-    console.log('data isnt here yet');
     return false;
   }
-  console.log('all data here');
   return true;
 }
 
 // Main Function
 const useMain = () => {
+  console.log('------START-------');
   const config = useConfig();
   const sigmaData = useElementData(config.source);
   console.log('config', config);
   console.log('sigmaData', sigmaData);
 
+  const payload = useMemo(() => getData(config, sigmaData), [config, sigmaData]);
+
+  console.log('payload', payload);
+
   const [res, setRes] = useState(null);
 
   useEffect(() => {
-    
+    console.log('payload has been changed, triggering useEffect')    
+    console.log('new payload', payload)
     // Call conditional function to make sure all data is in (async operation)
-    if (allData(config, sigmaData)) {
-      // This conditional prevents a lot of the re-rendering
-      // if (!res) {
-        setRes(getData(config, sigmaData));
-      // }
-      
-    }
+    // if (allData(config, sigmaData)) {
+    
+    setRes(payload);  
+    // }
+    // if (!payload) return null;
 
-  }, [config, sigmaData])
+    console.log('Payload not null');
+
+  }, [payload])
 
   console.log('RES', res);
   return res;
@@ -188,6 +197,7 @@ const useMain = () => {
 
 const App = () => {
   const options = useMain();
+  console.log('------END-------');
   return (
     options && <HighchartsReact highcharts={Highcharts} constructorType={"stockChart"} options={options} />
   );
