@@ -26,7 +26,29 @@ client.config.configureEditorPanel([
 ]);
 
 
-// Data Processor for the dates
+// -------------------------------------------------------
+/*
+Data Processing:
+allData - conditional check to make sure all the necessary data has been received from Sigma
+arraySorter - sorts the input columns by ascending date order
+getData - creates the data series for Highcharts and returns the required data object
+*/
+// -------------------------------------------------------
+
+const allData = (config, sigmaData) => {
+  if (!sigmaData[config['open']] 
+  && !sigmaData[config['high']] 
+  && !sigmaData[config['low']] 
+  && !sigmaData[config['close']] 
+  && !sigmaData[config['date']] 
+  && !sigmaData[config['volume']] 
+  && !sigmaData[config['symbol']]) {
+    return false;
+  }
+  return true;
+}
+
+
 const arraySorter = (config, sigmaData) => {
   
   // Destructure config object
@@ -40,7 +62,7 @@ const arraySorter = (config, sigmaData) => {
     symbol,
   } = config;
 
-  // Create array
+  // Create temp array
   let list = [];
 
   // Loop through the length of the arrays, push objects to temp array consisting
@@ -57,7 +79,7 @@ const arraySorter = (config, sigmaData) => {
     });
   }
 
-  // Becuase this is an array of objects, sort by the date in each object
+  // Sort the array by the date value in each object
   list.sort((a, b) => a.date - b.date);
 
   // Separate the values in the objects and assign them back to their original arrays
@@ -71,67 +93,39 @@ const arraySorter = (config, sigmaData) => {
     sigmaData[symbol][i] = list[i].symbol;
   }
 
-  console.log('new sigmaData', sigmaData);
+  // Return the sigmaData object, now with all of the input columns sorted in ascending 
+  // orer by date
   return sigmaData;
 }
 
-// Data Processing
 const getData = (config, sigmaData) => {
-  console.log('inside getData')
 
+  // Conditional to see if we have the config and element data from Sigma.
+  // If we have both, proceed with creating the output object
   if (allData(config, sigmaData)) {
-  // Sort the data by date
-  sigmaData = arraySorter(config, sigmaData);
+    // Sort the data by date
+    sigmaData = arraySorter(config, sigmaData);
 
-  // Create the series array in the format: date, open, high, low, close
-  const series = sigmaData[config['date']].map((val, i) => {
-    return [
-      val, 
-      sigmaData[config['open']][i], 
-      sigmaData[config['high']][i], 
-      sigmaData[config['low']][i], 
-      sigmaData[config['close']][i]
-    ]
-  })
+    // Create the series array in the format: date, open, high, low, close
+    const series = sigmaData[config['date']].map((val, i) => {
+      return [
+        val, 
+        sigmaData[config['open']][i], 
+        sigmaData[config['high']][i], 
+        sigmaData[config['low']][i], 
+        sigmaData[config['close']][i]
+      ]
+    })
 
-  // console.log('series', series);
-  // Create the output object for the candlestick chart
+    // Create the output object for the candlestick chart
     return {
-      rangeSelector: {
-        animation: false,
-        buttons: [{
-            type: 'month',
-            count: 1,
-            text: '1m',
-            events: {
-                click: function () {
-                    console.log(this);
-                    // setExtremes(undefined, undefined, false)
-                }
-            }
-        }, {
-            type: 'month',
-            count: 3,
-            text: '3m'
-        }, {
-            type: 'month',
-            count: 6,
-            text: '6m'
-        }, {
-            type: 'ytd',
-            text: 'YTD'
-        }, {
-            type: 'year',
-            count: 1,
-            text: '1y'
-        }, {
-            type: 'all',
-            text: 'All'
-        }],
-      },
       chart: {
         animation: false,
         type: 'candlestick'
+      },
+      rangeSelector: {
+        enabled: true,
+        animation: false
       },
       navigator: {
         enabled: true
@@ -149,55 +143,33 @@ const getData = (config, sigmaData) => {
   } 
 }
 
-// All Data Conditional
-const allData = (config, sigmaData) => {
-  if (!sigmaData[config['open']] 
-  && !sigmaData[config['high']] 
-  && !sigmaData[config['low']] 
-  && !sigmaData[config['close']] 
-  && !sigmaData[config['date']] 
-  && !sigmaData[config['volume']] 
-  && !sigmaData[config['symbol']]) {
-    return false;
-  }
-  return true;
-}
 
-// Main Function
+// -------------------------------------------------------
+/*
+Main Function Wrapper
+*/
+// -------------------------------------------------------
+
 const useMain = () => {
-  console.log('------START-------');
+  // Connect to Sigma
   const config = useConfig();
   const sigmaData = useElementData(config.source);
-  console.log('config', config);
-  console.log('sigmaData', sigmaData);
-
+  
+  // Process the data from Sigma and memoize result
   const payload = useMemo(() => getData(config, sigmaData), [config, sigmaData]);
-
-  console.log('payload', payload);
 
   const [res, setRes] = useState(null);
 
+  // call useEffect hook to re-render when the payload has changed depending on input data
   useEffect(() => {
-    console.log('payload has been changed, triggering useEffect')    
-    console.log('new payload', payload)
-    // Call conditional function to make sure all data is in (async operation)
-    // if (allData(config, sigmaData)) {
-    
     setRes(payload);  
-    // }
-    // if (!payload) return null;
-
-    console.log('Payload not null');
-
   }, [payload])
 
-  console.log('RES', res);
   return res;
 }
 
 const App = () => {
   const options = useMain();
-  console.log('------END-------');
   return (
     options && <HighchartsReact highcharts={Highcharts} constructorType={"stockChart"} options={options} />
   );
