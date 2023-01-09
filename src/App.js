@@ -26,14 +26,12 @@ client.config.configureEditorPanel([
 ]);
 
 
-// -------------------------------------------------------
-/*
-Data Processing:
-allData - conditional check to make sure all the necessary data has been received from Sigma
-arraySorter - sorts the input columns by ascending date order
-getData - creates the data series for Highcharts and returns the required data object
+/**
+ * Data Processing:
+ * allData - conditional check to make sure all the necessary data has been received from Sigma
+ * arraySorter - sorts the input columns by ascending date order
+ * getData - creates the data series for Highcharts and returns the required data object
 */
-// -------------------------------------------------------
 
 const allData = (config, sigmaData) => {
   if (!sigmaData[config['open']] 
@@ -144,11 +142,9 @@ const getData = (config, sigmaData) => {
 }
 
 
-// -------------------------------------------------------
-/*
-Main Function Wrapper
+/** 
+ *Main Function Wrapper 
 */
-// -------------------------------------------------------
 
 const useMain = () => {
   // Connect to Sigma
