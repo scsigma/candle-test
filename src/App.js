@@ -28,8 +28,10 @@ client.config.configureEditorPanel([
 
 /**
  * Data Processing:
- * allData - conditional check to make sure all the necessary data has been received from Sigma
- * getData - creates the data series for Highcharts and returns the required data object
+ * allData - conditional check to make sure all the necessary data has been received from Sigma.
+ * getData - creates the data series for Highcharts and returns the required data object.
+ * dateAscendingAlert - returns a console log error if the source table date column isn't sorted 
+ * in ascending order.
 */
 
 const allData = (config, sigmaData) => {
@@ -46,12 +48,21 @@ const allData = (config, sigmaData) => {
 }
 
 
+const datesAscendingAlert = (config, sigmaData) => {
+  if (sigmaData[config['date']][0] > sigmaData[config['date']][1]) {
+    console.log('ERROR:\nDate column is not sorted in ascending order!\nSort the Date column in ascending order to correct output.');
+  }
+}  
+
 const getData = (config, sigmaData) => {
 
   // Conditional to see if we have the config and element data from Sigma.
   // If we have both, proceed with creating the output object
   if (allData(config, sigmaData)) {
-    
+
+    // Conditional to make sure that the input data is sorted by date in ascending order
+    // If graph looks off, check console
+    datesAscendingAlert(config, sigmaData);
     // Create the series array in the format: date, open, high, low, close
     const series = sigmaData[config['date']].map((val, i) => {
       return [
@@ -61,7 +72,7 @@ const getData = (config, sigmaData) => {
         sigmaData[config['low']][i], 
         sigmaData[config['close']][i]
       ]
-    })
+    });
 
     // Create the output object for the candlestick chart
     return {
