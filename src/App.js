@@ -29,7 +29,6 @@ client.config.configureEditorPanel([
 /**
  * Data Processing:
  * allData - conditional check to make sure all the necessary data has been received from Sigma
- * arraySorter - sorts the input columns by ascending date order
  * getData - creates the data series for Highcharts and returns the required data object
 */
 
@@ -47,63 +46,12 @@ const allData = (config, sigmaData) => {
 }
 
 
-const arraySorter = (config, sigmaData) => {
-  
-  // Destructure config object
-  const {
-    open,
-    high,
-    low,
-    close,
-    date,
-    volume,
-    symbol,
-  } = config;
-
-  // Create temp array
-  let list = [];
-
-  // Loop through the length of the arrays, push objects to temp array consisting
-  // of the values at each step
-  for (let i = 0; i < sigmaData[open].length; i++) {
-    list.push({
-      open: sigmaData[open][i],
-      high: sigmaData[high][i],
-      low: sigmaData[low][i],
-      close: sigmaData[close][i],
-      date: sigmaData[date][i],
-      volume: sigmaData[volume][i],
-      symbol: sigmaData[symbol][i]
-    });
-  }
-
-  // Sort the array by the date value in each object
-  list.sort((a, b) => a.date - b.date);
-
-  // Separate the values in the objects and assign them back to their original arrays
-  for (let i = 0; i < list.length; i++) {
-    sigmaData[open][i] = list[i].open;
-    sigmaData[high][i] = list[i].high;
-    sigmaData[low][i] = list[i].low;
-    sigmaData[close][i] = list[i].close;
-    sigmaData[date][i] = list[i].date;
-    sigmaData[volume][i] = list[i].volume;
-    sigmaData[symbol][i] = list[i].symbol;
-  }
-
-  // Return the sigmaData object, now with all of the input columns sorted in ascending 
-  // orer by date
-  return sigmaData;
-}
-
 const getData = (config, sigmaData) => {
 
   // Conditional to see if we have the config and element data from Sigma.
   // If we have both, proceed with creating the output object
   if (allData(config, sigmaData)) {
-    // Sort the data by date
-    sigmaData = arraySorter(config, sigmaData);
-
+    
     // Create the series array in the format: date, open, high, low, close
     const series = sigmaData[config['date']].map((val, i) => {
       return [
@@ -147,10 +95,11 @@ const getData = (config, sigmaData) => {
 */
 
 const useMain = () => {
-  // Connect to Sigma
+  
+  // Receive config and element data objects from Sigma
   const config = useConfig();
   const sigmaData = useElementData(config.source);
-  
+
   // Process the data from Sigma and memoize result
   const payload = useMemo(() => getData(config, sigmaData), [config, sigmaData]);
 
