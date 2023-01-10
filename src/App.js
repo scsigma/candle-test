@@ -25,7 +25,6 @@ client.config.configureEditorPanel([
   { name: "symbol", type: "column", source: "source", allowMultiple: false}
 ]);
 
-
 /**
  * Data Processing:
  * allData - conditional check to make sure all the necessary data has been received from Sigma.
