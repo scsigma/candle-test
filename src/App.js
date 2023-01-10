@@ -94,8 +94,8 @@ const getData = (config, sigmaData) => {
         step: 'center',
         name: sigmaData[config['symbol']][0],
         data: series,
-        type: "candlestick"
-      }] 
+        type: "candlestick",
+      }],
     }
   } 
 }
@@ -114,6 +114,7 @@ const useMain = () => {
   // Process the data from Sigma and memoize result
   const payload = useMemo(() => getData(config, sigmaData), [config, sigmaData]);
 
+  // Result object that will be used in Highcharts
   const [res, setRes] = useState(null);
 
   // call useEffect hook to re-render when the payload has changed depending on input data
